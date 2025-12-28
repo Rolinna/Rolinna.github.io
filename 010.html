@@ -1,0 +1,1764 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>趣味智学——巧求周长小课堂</title>
+    <style>
+        /* 全局样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "微软雅黑", "幼圆", sans-serif;
+        }    
+        body {
+            background-color: #f0f8ff;
+            color: #333;
+            padding-bottom: 50px;
+        }
+
+        /* 顶部导航 - 新增：相对定位，用于放置静音按钮 */
+        .header {
+            background-color: #4a90e2;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative; /* 新增：相对定位 */
+        }
+
+        /* 全局静音按钮样式 - 核心新增 */
+        .global-mute-btn {
+            position: absolute;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        /* 静音状态样式（区分正常/静音） */
+        .global-mute-btn.muted {
+            background-color: #666;
+            content: "取消静音";
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 16px;
+        }    
+        /* 导航菜单 */
+        .nav {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            background-color: #fff;
+            padding: 15px 0;
+            margin: 20px auto;
+            width: 90%;
+            border-radius: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .nav button {
+            background-color: #ffd700;
+            border: none;
+            padding: 12px 25px;
+            margin: 0 10px 10px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        /* 重新开始按钮样式（可选：区分样式，更易识别） */
+        .nav .reset-btn {
+            background-color: #ff6b6b;
+            color: #fff;
+        }
+
+        .nav .reset-btn:hover {
+            background-color: #e55353;
+            transform: scale(1.05);
+        }
+
+        .nav button:hover {
+            background-color: #ffc107;
+            transform: scale(1.05);
+        }
+
+        /* 内容容器 */
+        .container {
+            width: 90%;
+            margin: 0 auto;
+            display: none;
+        }
+
+        .container.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* 模块标题 */
+        .module-title {
+            color: #4a90e2;
+            font-size: 24px;
+            margin: 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #ffd700;
+        }
+
+        /* 知识讲解模块样式 */
+        .knowledge-content {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .knowledge-item {
+            margin-bottom: 40px;
+        }
+
+        .knowledge-item h3 {
+            color: #ff6b6b;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        /* 动画知识项统一布局：左右分栏 */
+        .animation-knowledge-wrap {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-gap: 30px;
+            align-items: flex-start;
+        }
+
+        /* 左侧文字说明+语音按钮区域 */
+        .text-area {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .text-area p {
+            font-size: 16px;
+            line-height: 1.8;
+            white-space: normal;
+            word-wrap: break-word;
+        }
+
+        /* 右侧动画+播放按钮区域 */
+        .animation-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+
+        /* 语音控制按钮组样式 */
+        .voice-control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .voice-btn, .animation-btn {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .voice-control-btn {
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        /* 动画容器样式 */
+        .animation-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        /* 平面示意图样式：确保内容完整显示在黄色边框内 */
+        .question-svg, .animation-svg {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            border: 3px solid #ffd700;
+            border-radius: 10px;
+            padding: 15px;
+            background-color: #fff;
+            overflow: visible;
+            display: block;
+        }
+
+        /* 题目练习模块样式 */
+        .exercise-content {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        /* 关卡导航样式 */
+        .level-nav {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .level-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .level-btn.locked {
+            background-color: #ccc;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        .level-btn.active {
+            background-color: #4a90e2;
+            color: white;
+        }
+
+        .level-btn.completed {
+            background-color: #28a745;
+            color: white;
+        }
+
+        /* 关卡信息 */
+        .level-info {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #e6f7ff;
+            border-radius: 10px;
+        }
+
+        .level-info h3 {
+            color: #4a90e2;
+            margin-bottom: 5px;
+        }
+
+        /* 进度条 */
+        .progress-container {
+            width: 100%;
+            background-color: #eee;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .progress-bar {
+            height: 10px;
+            border-radius: 10px;
+            background-color: #4a90e2;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* 每道题布局：网格布局实现左上题目语音、右上示意图、下侧答题区 */
+        .question {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed #eee;
+            display: grid;
+            grid-template-areas:
+                "question-area svg-area"
+                "answer-area answer-area";
+            grid-template-columns: 1fr 1fr;
+            grid-gap: 20px;
+            align-items: flex-start;
+        }
+
+        .question:last-child {
+            border-bottom: none;
+        }
+
+        /* 题目+语音播放区域 */
+        .question-area {
+            grid-area: question-area;
+        }
+
+        /* 示意图区域 */
+        .svg-area {
+            grid-area: svg-area;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        /* 答题区域 */
+        .answer-area {
+            grid-area: answer-area;
+            margin-top: 10px;
+        }
+
+        .question h4 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        /* 答题框+自动单位样式 */
+        .answer-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .question input {
+            padding: 10px;
+            width: 200px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .unit {
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .question-btn {
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 0 5px;
+        }
+
+        .next-btn {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .feedback {
+            margin-top: 10px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .correct {
+            color: #28a745;
+        }
+
+        .wrong {
+            color: #dc3545;
+        }
+
+        .explanation {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            display: none;
+        }
+
+        /* 关卡完成弹窗 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .modal-content h2 {
+            color: #4a90e2;
+            margin-bottom: 20px;
+        }
+
+        .modal-content p {
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .modal-btn {
+            background-color: #ffd700;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 0 10px;
+        }
+
+        /* 记录模块样式 */
+        .record-content {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .record-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .record-item h3 {
+            color: #4a90e2;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .record-item p {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .wrong-list {
+            margin-top: 10px;
+        }
+
+        .wrong-item {
+            padding: 10px;
+            background-color: #fff;
+            border-left: 4px solid #dc3545;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        .retry-btn {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        /* 总结模块样式 */
+        .summary-content {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .summary-mind {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .life-case {
+            margin-bottom: 20px;
+        }
+
+        .life-case h3 {
+            color: #ff6b6b;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .life-case p {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        /* 底部样式 */
+        .footer {
+            text-align: center;
+            padding: 10px;
+            margin-top: 30px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* 响应式调整：小屏幕下布局改为上下排列 */
+        @media (max-width: 768px) {
+            .animation-knowledge-wrap {
+                grid-template-columns: 1fr;
+            }
+            .question {
+                grid-template-areas:
+                    "question-area"
+                    "svg-area"
+                    "answer-area";
+                grid-template-columns: 1fr;
+            }
+            /* 小屏幕下调整全局静音按钮位置 */
+            .global-mute-btn {
+                position: static;
+                transform: none;
+                margin-top: 15px;
+                display: inline-block;
+            }
+            .header {
+                padding-bottom: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航 - 新增全局静音按钮 -->
+    <div class="header">
+        <h1>📐 巧求周长趣味小课堂 📐</h1>
+        <p>专为三年级小朋友打造的数学学习神器</p>
+        <!-- 全局静音按钮 - 核心新增：唯一控制整个网页语音 -->
+        <button class="global-mute-btn" id="globalMuteBtn" onclick="toggleGlobalMute()">静音</button>
+    </div>
+
+    <!-- 功能导航 - 新增重新开始按钮 -->
+    <div class="nav">
+        <button onclick="switchModule('home', '欢迎来到首页')">首页</button>
+        <button onclick="switchModule('knowledge', '欢迎来到知识讲解模块')">知识讲解</button>
+        <button onclick="switchModule('exercise', '欢迎来到题目练习模块')">题目练习</button>
+        <button onclick="switchModule('record', '欢迎来到我的记录模块')">我的记录</button>
+        <button onclick="switchModule('summary', '欢迎来到知识总结模块')">知识总结</button>
+        <!-- 新增：重新开始按钮 -->
+        <button class="reset-btn" onclick="resetAllState()">重新开始</button>
+    </div>
+
+    <!-- 首页模块 - 移除静音按钮 -->
+    <div id="home" class="container active">
+        <h2 class="module-title">👋 欢迎来到巧求周长小课堂！</h2>
+        <div class="knowledge-content">
+            <p>亲爱的三年级小朋友，你知道吗？我们身边到处都有周长的身影——课桌的边框、操场的跑道、饼干的形状，都能用到周长知识！</p>
+            <p>在这里，你可以：</p>
+            <ul style="font-size:16px; line-height:1.8; margin:15px 0 15px 20px;">
+                <li>通过图文+语音，轻松学会巧求周长的技巧</li>
+                <li>做趣味练习题，检验自己的学习成果</li>
+                <li>查看自己的答题记录，攻克错题难关</li>
+                <li>回顾核心知识点，解决生活中的周长问题</li>
+            </ul>
+            <p>现在，点击上方导航按钮，开始你的周长学习之旅吧！🚀</p>
+            <!-- 移除静音按钮，只保留播放、暂停、继续 -->
+            <div class="voice-control-group">
+                <button class="voice-btn" onclick="speakHomeContent()">播放语音</button>
+                <button class="voice-control-btn" onclick="pauseSpeech()">暂停语音</button>
+                <button class="voice-control-btn" onclick="resumeSpeech()">继续播放</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 知识讲解模块 - 移除所有静音按钮 -->
+    <div id="knowledge" class="container">
+        <h2 class="module-title">📚 巧求周长核心知识讲解</h2>
+        <div class="knowledge-content">
+            <div class="knowledge-item">
+                <h3>1. 什么是周长？</h3>
+                <p>封闭图形一周的长度，就是这个图形的周长。比如我们用绳子绕着正方形手帕围一圈，绳子的长度就是手帕的周长。</p>
+                <!-- 移除静音按钮 -->
+                <div class="voice-control-group">
+                    <button class="voice-btn" onclick="speakText('封闭图形一周的长度，就是这个图形的周长。比如用绳子绕着正方形手帕围一圈，绳子的长度就是手帕的周长。')">播放语音</button>
+                    <button class="voice-control-btn" onclick="pauseSpeech()">暂停语音</button>
+                    <button class="voice-control-btn" onclick="resumeSpeech()">继续播放</button>
+                </div>
+            </div>
+
+            <div class="knowledge-item">
+                <h3>2. 规则图形周长公式推导（动画演示）</h3>
+                <div class="animation-knowledge-wrap">
+                    <div class="text-area">
+                        <p>长方形有两条相等的长和两条相等的宽，周长是四条边长度之和，即：长 + 宽 + 长 + 宽，简化后得到（长 + 宽）× 2。</p>
+                        <p>正方形的四条边都相等，周长是四条边长度之和，即：边长 + 边长 + 边长 + 边长，简化后得到边长 × 4。</p>
+                        <!-- 移除静音按钮 -->
+                        <div class="voice-control-group">
+                            <button class="voice-btn" onclick="speakText('长方形周长等于长加宽的和乘以2，正方形周长等于边长乘以4。')">播放语音讲解</button>
+                            <button class="voice-control-btn" onclick="pauseSpeech()">暂停语音</button>
+                            <button class="voice-control-btn" onclick="resumeSpeech()">继续播放</button>
+                        </div>
+                    </div>
+                    <div class="animation-wrap">
+                        <div class="animation-container">
+                            <svg class="animation-svg" viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg" id="formulaAnimationSvg">
+                                <g id="rectFormula" transform="translate(20, 0)">
+                                    <rect x="10" y="30" width="160" height="80" fill="#e6f7ff" stroke="#4a90e2" stroke-width="3"/>
+                                    <text x="80" y="25" font-size="14" fill="#333" font-weight="bold">长 a</text>
+                                    <text x="5" y="70" font-size="14" fill="#333" font-weight="bold">宽 b</text>
+                                    <line x1="10" y1="30" x2="170" y2="30" stroke="#ff6b6b" stroke-width="3" id="rectTop" />
+                                    <line x1="170" y1="30" x2="170" y2="110" stroke="#28a745" stroke-width="3" id="rectRight" />
+                                    <line x1="170" y1="110" x2="10" y2="110" stroke="#ff6b6b" stroke-width="3" id="rectBottom" />
+                                    <line x1="10" y1="110" x2="10" y2="30" stroke="#28a745" stroke-width="3" id="rectLeft" />
+                                    <text x="20" y="150" font-size="14" fill="#333" font-weight="bold" opacity="0" id="rectFormulaText">长方形周长：a + b + a + b = (a + b) × 2</text>
+                                </g>
+                                <g id="squareFormula" transform="translate(300, 0)">
+                                    <rect x="10" y="30" width="80" height="80" fill="#fff3cd" stroke="#ffd700" stroke-width="3"/>
+                                    <text x="40" y="25" font-size="14" fill="#333" font-weight="bold">边长 a</text>
+                                    <line x1="10" y1="30" x2="90" y2="30" stroke="#ff6b6b" stroke-width="3" id="squareTop" />
+                                    <line x1="90" y1="30" x2="90" y2="110" stroke="#ff6b6b" stroke-width="3" id="squareRight" />
+                                    <line x1="90" y1="110" x2="10" y2="110" stroke="#ff6b6b" stroke-width="3" id="squareBottom" />
+                                    <line x1="10" y1="110" x2="10" y2="30" stroke="#ff6b6b" stroke-width="3" id="squareLeft" />
+                                    <text x="20" y="150" font-size="14" fill="#333" font-weight="bold" opacity="0" id="squareFormulaText">正方形周长：a + a + a + a = a × 4</text>
+                                </g>
+                            </svg>
+                        </div>
+                        <button class="animation-btn" onclick="playFormulaAnimation()">播放公式推导动画</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="knowledge-item">
+                <h3>3. 不规则图形周长——平移法（动画演示）</h3>
+                <div class="animation-knowledge-wrap">
+                    <div class="text-area">
+                        <p>不规则图形的周长计算可以用平移法，将不规则的线段平移后，转化为我们熟悉的长方形或正方形，平移后图形的周长与原图形周长相等，再用规则图形周长公式计算即可。</p>
+                        <!-- 移除静音按钮 -->
+                        <div class="voice-control-group">
+                            <button class="voice-btn" onclick="speakText('巧求不规则图形周长，可以用平移法，把不规则图形转化为长方形或正方形，再用周长公式计算。')">播放语音讲解</button>
+                            <button class="voice-control-btn" onclick="pauseSpeech()">暂停语音</button>
+                            <button class="voice-control-btn" onclick="resumeSpeech()">继续播放</button>
+                        </div>
+                    </div>
+                    <div class="animation-wrap">
+                        <div class="animation-container">
+                            <svg class="animation-svg" viewBox="0 0 500 180" xmlns="http://www.w3.org/2000/svg" id="translationAnimationSvg">
+                                <g id="beforeTranslation" transform="translate(20, 20)">
+                                    <text x="40" y="-5" font-size="14" fill="#333" font-weight="bold">平移前（不规则）</text>
+                                    <path d="M30 0 L130 0 L130 30 L160 30 L160 70 L130 70 L130 100 L30 100 Z" fill="#f5fafe" stroke="#4a90e2" stroke-width="2"/>
+                                    <line x1="130" y1="0" x2="130" y2="30" stroke="#ff6b6b" stroke-width="3" id="translateV1" />
+                                    <line x1="130" y1="70" x2="130" y2="100" stroke="#ff6b6b" stroke-width="3" id="translateV2" />
+                                    <line x1="130" y1="30" x2="160" y2="30" stroke="#28a745" stroke-width="3" id="translateH1" />
+                                    <line x1="130" y1="70" x2="160" y2="70" stroke="#28a745" stroke-width="3" id="translateH2" />
+                                </g>
+                                <line x1="220" y1="90" x2="250" y2="90" stroke="#ff6b6b" stroke-width="2" marker-end="url(#arrowhead)"/>
+                                <g id="afterTranslation" transform="translate(280, 20)" opacity="0">
+                                    <text x="40" y="-5" font-size="14" fill="#333" font-weight="bold">平移后（长方形）</text>
+                                    <rect x="30" y="0" width="130" height="100" fill="#e6f7ff" stroke="#4a90e2" stroke-width="2"/>
+                                    <text x="35" y="120" font-size="12" fill="#333" font-weight="bold">周长与原图形相等</text>
+                                    <line x1="160" y1="0" x2="160" y2="100" stroke="#ff6b6b" stroke-width="3" id="translatedV" opacity="0"/>
+                                    <line x1="30" y1="0" x2="160" y2="0" stroke="#28a745" stroke-width="3" id="translatedH1" opacity="0"/>
+                                    <line x1="30" y1="100" x2="160" y2="100" stroke="#28a745" stroke-width="3" id="translatedH2" opacity="0"/>
+                                </g>
+                                <defs>
+                                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#ff6b6b"/></marker>
+                                </defs>
+                            </svg>
+                        </div>
+                        <button class="animation-btn" onclick="playTranslationAnimation()">播放平移动画</button>
+                    </div>
+                </div>
+            </div>
+            <!-- 新增：知识讲解完成标记按钮 -->
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="animation-btn" onclick="markModuleCompleted('knowledge')">我已掌握知识讲解</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 题目练习模块 -->
+    <div id="exercise" class="container">
+        <h2 class="module-title">✏️ 趣味题目练习</h2>
+        <div class="exercise-content">
+            <div class="level-nav">
+                <button class="level-btn active" id="level-1-btn" onclick="switchLevel(1)">基础关卡</button>
+                <button class="level-btn locked" id="level-2-btn" onclick="switchLevel(2)">进阶关卡</button>
+                <button class="level-btn locked" id="level-3-btn" onclick="switchLevel(3)">挑战关卡</button>
+            </div>
+            <div class="level-info">
+                <h3 id="level-title">基础关卡 - 第1题/共5题</h3>
+                <p id="level-description">基础关卡主要练习长方形和正方形周长的基本计算</p>
+                <div class="progress-container">
+                    <div class="progress-bar" id="level-progress"></div>
+                </div>
+            </div>
+            <div id="questions-container"></div>
+            <div style="text-align: center;">
+                <button class="next-btn" id="next-btn" onclick="nextQuestion()">下一题</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 关卡完成弹窗 -->
+    <div class="modal" id="level-complete-modal">
+        <div class="modal-content">
+            <h2>🎉 恭喜你！</h2>
+            <p id="modal-message">你成功完成了基础关卡！</p>
+            <button class="modal-btn" id="next-level-btn">下一关</button>
+            <button class="modal-btn" id="close-modal-btn">返回</button>
+        </div>
+    </div>
+
+    <!-- 我的记录模块 -->
+    <div id="record" class="container">
+        <h2 class="module-title">📝 我的学习记录</h2>
+        <div class="record-content">
+            <div class="record-item">
+                <h3>学习进度</h3>
+                <p>知识讲解：<span id="progress-knowledge">未完成</span></p>
+                <p>题目练习：<span id="progress-exercise">未完成</span></p>
+                <p>知识总结：<span id="progress-summary">未完成</span></p>
+            </div>
+            <div class="record-item">
+                <h3>答题统计</h3>
+                <p>总答题数：<span id="total-questions">0</span></p>
+                <p>正确题数：<span id="correct-questions">0</span></p>
+                <p>正确率：<span id="correct-rate">0%</span></p>
+            </div>
+            <div class="record-item">
+                <h3>我的错题本</h3>
+                <div class="wrong-list" id="wrong-list">
+                    <p>暂无错题，继续加油哦！</p>
+                </div>
+                <button class="question-btn" onclick="clearWrongQuestions()">清空错题</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 知识总结模块 - 移除静音按钮 -->
+    <div id="summary" class="container">
+        <h2 class="module-title">📖 巧求周长知识总结</h2>
+        <div class="summary-content">
+            <div class="summary-mind">
+                <h3>核心知识点思维导图（平面版）</h3>
+                <svg class="question-svg" viewBox="0 0 500 300" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="250" cy="50" r="40" fill="#4a90e2" stroke="#2196f3" stroke-width="3"/>
+                    <text x="220" y="55" font-size="14" fill="white" font-weight="bold">巧求周长</text>
+                    <line x1="250" y1="90" x2="120" y2="150" stroke="#4a90e2" stroke-width="2"/>
+                    <line x1="250" y1="90" x2="250" y2="150" stroke="#4a90e2" stroke-width="2"/>
+                    <line x1="250" y1="90" x2="380" y2="150" stroke="#4a90e2" stroke-width="2"/>
+                    <rect x="80" y="120" width="80" height="60" fill="#e6f7ff" stroke="#4a90e2" stroke-width="2" rx="5"/>
+                    <text x="90" y="145" font-size="12" fill="#333" font-weight="bold">周长定义</text>
+                    <text x="95" y="165" font-size="10" fill="#666">封闭图形一周</text>
+                    <rect x="210" y="120" width="80" height="60" fill="#fff3cd" stroke="#ffd700" stroke-width="2" rx="5"/>
+                    <text x="220" y="145" font-size="12" fill="#333" font-weight="bold">规则图形</text>
+                    <text x="225" y="165" font-size="10" fill="#666">长/正方形公式</text>
+                    <rect x="340" y="120" width="80" height="60" fill="#fdf2f8" stroke="#ff6b6b" stroke-width="2" rx="5"/>
+                    <text x="350" y="145" font-size="12" fill="#333" font-weight="bold">不规则图形</text>
+                    <text x="355" y="165" font-size="10" fill="#666">平移法转化</text>
+                </svg>
+                <!-- 移除静音按钮 -->
+                <div class="voice-control-group" style="margin-top: 15px;">
+                    <button class="voice-btn" onclick="speakText('巧求周长核心知识点：1. 周长定义：封闭图形一周的长度；2. 规则图形：长方形周长（长+宽）×2，正方形周长边长×4；3. 不规则图形：用平移法转化为规则图形再计算；4. 生活应用：护栏、边框、跑道等场景。')">播放总结语音</button>
+                    <button class="voice-control-btn" onclick="pauseSpeech()">暂停语音</button>
+                    <button class="voice-control-btn" onclick="resumeSpeech()">继续播放</button>
+                </div>
+            </div>
+            <div class="life-case">
+                <h3>生活中的周长问题解答</h3>
+                <p>1. 问题：妈妈要给餐桌铺桌布，餐桌是长方形，长1.2米，宽0.8米，桌布四周要多出10厘米，桌布的周长是多少？</p>
+                <p>解答：先算出桌布的长和宽，长=1.2+0.1×2=1.4米，宽=0.8+0.1×2=1米，周长=（1.4+1）×2=4.8米。</p>
+            </div>
+            <div class="life-case">
+                <p>2. 问题：小明绕着正方形花园跑了3圈，花园边长20米，小明一共跑了多少米？</p>
+                <p>解答：先算1圈的周长=20×4=80米，3圈就是80×3=240米。</p>
+            </div>
+            <div class="life-case">
+                <h3>学习小贴士</h3>
+                <p>1. 计算周长前，先确认图形是否是封闭图形；</p>
+                <p>2. 用平移法时，要确保线段平移后长度不变；</p>
+                <p>3. 解决生活问题时，要注意单位是否统一哦！</p>
+            </div>
+            <!-- 新增：知识总结完成标记按钮 -->
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="animation-btn" onclick="markModuleCompleted('summary')">我已掌握知识总结</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部 -->
+    <div class="footer">
+        <p>制作团队：洲洲、江江、佑佑 | 三年级数学PBL项目作品</p>
+    </div>
+
+    <script>
+        // 全局语音实例存储
+        let currentUtterance = null;
+        let speechSynthesis = window.speechSynthesis;
+        let isPaused = false; // 标记是否处于暂停状态
+        let isExerciseCompletedTip = false; // 标记是否已触发练习完成语音提示
+        let isGlobalMuted = false; // 核心新增：全局静音状态（默认非静音）
+
+        // 新增：学习进度状态（持久化存储）
+        let studyProgress = {
+            knowledge: '未完成',
+            exercise: '未开始',
+            summary: '未完成'
+        };
+
+        // 配置三年级男孩语音参数
+        function createBoyUtterance(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-CN';
+            utterance.pitch = 1.2;
+            utterance.rate = 0.9;
+            utterance.volume = 1;
+            return utterance;
+        }
+
+        // 模块切换+语音提示
+        function switchModule(moduleId, tipText) {
+            document.querySelectorAll('.container').forEach(container => {
+                container.classList.remove('active');
+            });
+            document.getElementById(moduleId).classList.add('active');
+            
+            // 播放提示语音（先判断全局静音状态）
+            if (!isGlobalMuted) {
+                speakText(tipText);
+            }
+            
+            if (moduleId === 'exercise') {
+                resetExerciseModule();
+            } else if (moduleId === 'record') {
+                updateWrongList();
+                updateStats();
+            }
+        }
+
+        // 首页语音内容
+        function speakHomeContent() {
+            const content = "亲爱的三年级小朋友，欢迎来到巧求周长小课堂！在这里，你可以通过图文加语音，轻松学会巧求周长的技巧，做趣味练习题，检验自己的学习成果，查看自己的答题记录，攻克错题难关，回顾核心知识点，解决生活中的周长问题。现在，点击上方导航按钮，开始你的周长学习之旅吧！";
+            speakText(content);
+        }
+
+        // 语音播放功能 - 核心优化：判断全局静音状态
+        function speakText(text) {
+            // 如果全局静音，直接返回，不执行播放
+            if (isGlobalMuted) {
+                return;
+            }
+
+            // 停止当前语音
+            if (currentUtterance) {
+                speechSynthesis.cancel();
+            }
+            
+            // 创建并播放新语音
+            currentUtterance = createBoyUtterance(text);
+            currentUtterance.onend = () => {
+                currentUtterance = null;
+                isPaused = false;
+            };
+            speechSynthesis.speak(currentUtterance);
+            isPaused = false;
+        }
+
+        // 暂停语音
+        function pauseSpeech() {
+            // 全局静音时不执行操作
+            if (isGlobalMuted) {
+                return;
+            }
+            if (speechSynthesis.speaking && !isPaused) {
+                speechSynthesis.pause();
+                isPaused = true;
+            }
+        }
+
+        // 继续播放语音
+        function resumeSpeech() {
+            // 全局静音时不执行操作
+            if (isGlobalMuted) {
+                return;
+            }
+            if (speechSynthesis.paused && isPaused) {
+                speechSynthesis.resume();
+                isPaused = false;
+            }
+        }
+
+        // 核心新增：切换全局静音状态
+        function toggleGlobalMute() {
+            const muteBtn = document.getElementById('globalMuteBtn');
+            // 切换静音状态
+            isGlobalMuted = !isGlobalMuted;
+
+            if (isGlobalMuted) {
+                // 静音状态：停止所有正在播放的语音，更新按钮样式和文本
+                speechSynthesis.cancel();
+                currentUtterance = null;
+                muteBtn.textContent = "取消静音";
+                muteBtn.classList.add('muted');
+            } else {
+                // 非静音状态：更新按钮样式和文本
+                muteBtn.textContent = "静音";
+                muteBtn.classList.remove('muted');
+            }
+        }
+
+        // 核心新增：保存学习进度到本地存储
+        function saveStudyProgress() {
+            localStorage.setItem('studyProgress', JSON.stringify(studyProgress));
+        }
+
+        // 核心新增：加载本地存储的学习进度
+        function loadStudyProgress() {
+            const savedProgress = localStorage.getItem('studyProgress');
+            if (savedProgress) {
+                studyProgress = JSON.parse(savedProgress);
+                // 更新页面显示
+                document.getElementById('progress-knowledge').textContent = studyProgress.knowledge;
+                document.getElementById('progress-exercise').textContent = studyProgress.exercise;
+                document.getElementById('progress-summary').textContent = studyProgress.summary;
+            }
+        }
+
+        // 核心新增：标记模块为已完成
+        function markModuleCompleted(moduleName) {
+            if (!['knowledge', 'exercise', 'summary'].includes(moduleName)) {
+                return;
+            }
+            studyProgress[moduleName] = '已完成';
+            // 更新页面显示
+            document.getElementById(`progress-${moduleName}`).textContent = '已完成';
+            // 保存到本地存储
+            saveStudyProgress();
+            // 语音提示
+            if (!isGlobalMuted) {
+                const tipText = {
+                    knowledge: "恭喜你，已掌握巧求周长的核心知识！",
+                    exercise: "恭喜你，已完成所有练习关卡！",
+                    summary: "恭喜你，已掌握巧求周长的知识总结！"
+                };
+                speakText(tipText[moduleName] || "恭喜你，已完成该模块学习！");
+            }
+        }
+
+
+// 核心补全：重新开始函数 - 恢复所有初始状态（新增知识讲解/总结模块重置）
+function resetAllState() {
+    // 1. 重置全局语音相关状态
+    speechSynthesis.cancel(); // 停止所有播放/暂停的语音
+    currentUtterance = null;   // 清空当前语音实例
+    isPaused = false;          // 重置暂停标记
+    isExerciseCompletedTip = false; // 重置练习完成提示标记
+
+    // 2. 重置全局静音状态及按钮样式
+    isGlobalMuted = false;
+    const muteBtn = document.getElementById('globalMuteBtn');
+    muteBtn.textContent = "静音";
+    muteBtn.classList.remove('muted');
+
+    // 3. 重置模块显示状态 - 回到首页（初始激活模块）
+    document.querySelectorAll('.container').forEach(container => {
+        container.classList.remove('active');
+    });
+    document.getElementById('home').classList.add('active');
+
+    // 4. 重置练习模块核心状态（恢复初始默认值）
+    exerciseState = {
+        currentLevel: 1,
+        currentQuestionIndex: 0,
+        attempts: {},
+        completedLevels: [],
+        questionStats: {
+            total: 0,
+            correct: 0
+        },
+        wrongQuestions: []
+    };
+    // 删除本地存储的练习状态，避免下次加载读取旧数据
+    localStorage.removeItem('exerciseState');
+
+    // 5. 重置练习模块UI
+    // 5.1 重置关卡按钮样式（仅基础关卡激活，其他锁定）
+    const levelBtns = document.querySelectorAll('.level-btn');
+    levelBtns.forEach((btn, index) => {
+        btn.classList.remove('active', 'completed', 'locked');
+        if (index === 0) {
+            btn.classList.add('active'); // 基础关卡激活
+        } else {
+            btn.classList.add('locked'); // 进阶/挑战关卡锁定
+        }
+    });
+    // 5.2 重置关卡信息（标题、描述、进度条）
+    document.getElementById('level-title').textContent = "基础关卡 - 第1题/共5题";
+    document.getElementById('level-description').textContent = "基础关卡主要练习长方形和正方形周长的基本计算";
+    document.getElementById('level-progress').style.width = "0%";
+    // 5.3 隐藏下一题按钮
+    document.getElementById('next-btn').style.display = "none";
+    // 5.4 重新渲染初始题目（基础关卡第1题）
+    renderCurrentQuestion();
+
+    // 6. 重置动画状态（公式推导动画 + 平移动画回到初始未播放状态）
+    resetFormulaAnimation();
+    resetTranslationAnimation();
+
+    // 7. 重置关卡完成弹窗（确保隐藏）
+    document.getElementById('level-complete-modal').style.display = "none";
+
+    // 8. 重置学习进度状态及本地存储
+    studyProgress = {
+        knowledge: '未完成',
+        exercise: '未开始',
+        summary: '未完成'
+    };
+    saveStudyProgress();
+    // 8.1 重置学习进度页面显示
+    document.getElementById('progress-knowledge').textContent = "未完成";
+    document.getElementById('progress-exercise').textContent = "未开始";
+    document.getElementById('progress-summary').textContent = "未完成";
+    // 8.2 重置答题统计
+    document.getElementById('total-questions').textContent = "0";
+    document.getElementById('correct-questions').textContent = "0";
+    document.getElementById('correct-rate').textContent = "0%";
+    // 8.3 重置错题本
+    const wrongList = document.getElementById('wrong-list');
+    wrongList.innerHTML = "<p>暂无错题，继续加油哦！</p>";
+
+    // 可选：添加重置成功的语音提示（非必须，可保留）
+    if (!isGlobalMuted) {
+        speakText("已为你重置所有状态，回到初始页面！");
+    }
+
+// 清除所有本地存储，然后刷新页面
+    localStorage.clear();
+    setTimeout(() => {
+        window.location.reload();
+    }, 300);
+}
+
+        // 公式推导动画
+        function playFormulaAnimation() {
+            resetFormulaAnimation();
+            
+            const rectTop = document.getElementById('rectTop');
+            const rectRight = document.getElementById('rectRight');
+            const rectBottom = document.getElementById('rectBottom');
+            const rectLeft = document.getElementById('rectLeft');
+            const rectFormulaText = document.getElementById('rectFormulaText');
+            
+            const squareTop = document.getElementById('squareTop');
+            const squareRight = document.getElementById('squareRight');
+            const squareBottom = document.getElementById('squareBottom');
+            const squareLeft = document.getElementById('squareLeft');
+            const squareFormulaText = document.getElementById('squareFormulaText');
+            
+            animateLine(rectTop, 500);
+            setTimeout(() => animateLine(rectRight, 500), 600);
+            setTimeout(() => animateLine(rectBottom, 500), 1200);
+            setTimeout(() => animateLine(rectLeft, 500), 1800);
+            setTimeout(() => {
+                rectFormulaText.style.transition = 'opacity 1s';
+                rectFormulaText.style.opacity = 1;
+            }, 2400);
+            
+            setTimeout(() => animateLine(squareTop, 500), 3000);
+            setTimeout(() => animateLine(squareRight, 500), 3600);
+            setTimeout(() => animateLine(squareBottom, 500), 4200);
+            setTimeout(() => animateLine(squareLeft, 500), 4800);
+            setTimeout(() => {
+                squareFormulaText.style.transition = 'opacity 1s';
+                squareFormulaText.style.opacity = 1;
+            }, 5400);
+        }
+
+        // 重置公式动画
+        function resetFormulaAnimation() {
+            const lines = ['rectTop', 'rectRight', 'rectBottom', 'rectLeft', 
+                          'squareTop', 'squareRight', 'squareBottom', 'squareLeft'];
+            lines.forEach(id => {
+                const line = document.getElementById(id);
+                line.style.strokeDasharray = line.getTotalLength();
+                line.style.strokeDashoffset = line.getTotalLength();
+                line.style.transition = 'none';
+            });
+            
+            document.getElementById('rectFormulaText').style.opacity = 0;
+            document.getElementById('squareFormulaText').style.opacity = 0;
+        }
+
+        // 线动画
+        function animateLine(line, duration) {
+            const length = line.getTotalLength();
+            line.style.transition = `stroke-dashoffset ${duration}ms ease-in-out`;
+            line.style.strokeDasharray = length;
+            line.style.strokeDashoffset = 0;
+        }
+
+        // 平移动画
+        function playTranslationAnimation() {
+            resetTranslationAnimation();
+            
+            const translateV1 = document.getElementById('translateV1');
+            const translateV2 = document.getElementById('translateV2');
+            const translateH1 = document.getElementById('translateH1');
+            const translateH2 = document.getElementById('translateH2');
+            const translatedV = document.getElementById('translatedV');
+            const translatedH1 = document.getElementById('translatedH1');
+            const translatedH2 = document.getElementById('translatedH2');
+            const afterTranslation = document.getElementById('afterTranslation');
+            
+            setTimeout(() => {
+                translateV1.style.transition = 'transform 1s ease';
+                translateV2.style.transition = 'transform 1s ease';
+                translateV1.style.transform = 'translateX(30px)';
+                translateV2.style.transform = 'translateX(30px)';
+                
+                translateH1.style.transition = 'transform 1s ease';
+                translateH2.style.transition = 'transform 1s ease';
+                translateH1.style.transform = 'translateY(-30px)';
+                translateH2.style.transform = 'translateY(30px)';
+            }, 500);
+            
+            setTimeout(() => {
+                afterTranslation.style.transition = 'opacity 1s';
+                afterTranslation.style.opacity = 1;
+                
+                setTimeout(() => {
+                    translatedV.style.transition = 'opacity 1s';
+                    translatedV.style.opacity = 1;
+                }, 500);
+                
+                setTimeout(() => {
+                    translatedH1.style.transition = 'opacity 1s';
+                    translatedH2.style.transition = 'opacity 1s';
+                    translatedH1.style.opacity = 1;
+                    translatedH2.style.opacity = 1;
+                }, 1000);
+            }, 2000);
+        }
+
+        // 重置平移动画
+        function resetTranslationAnimation() {
+            const elements = ['translateV1', 'translateV2', 'translateH1', 'translateH2'];
+            elements.forEach(id => {
+                const el = document.getElementById(id);
+                el.style.transition = 'none';
+                el.style.transform = 'translate(0, 0)';
+            });
+            
+            document.getElementById('afterTranslation').style.opacity = 0;
+            document.getElementById('translatedV').style.opacity = 0;
+            document.getElementById('translatedH1').style.opacity = 0;
+            document.getElementById('translatedH2').style.opacity = 0;
+        }
+
+        // 题目数据
+        const questionData = {
+            1: [
+                {
+                    id: 101,
+                    title: "【基础题1】一个长方形课桌，长60厘米，宽40厘米，它的周长是多少厘米？",
+                    svg: `<rect x="10" y="10" width="180" height="100" fill="#d2b48c" stroke="#8b4513" stroke-width="3"/>
+                          <text x="80" y="25" font-size="14" fill="#333" font-weight="bold">60cm（长）</text>
+                          <text x="15" y="65" font-size="14" fill="#333" font-weight="bold">40cm（宽）</text>`,
+                    unit: "厘米",
+                    answer: 200,
+                    explanation: "长方形周长公式：（长+宽）×2，所以这道题的计算是（60+40）×2 = 100×2 = 200厘米。"
+                },
+                {
+                    id: 102,
+                    title: "【基础题2】一个正方形魔方，边长9厘米，它的周长是多少厘米？",
+                    svg: `<rect x="10" y="10" width="100" height="100" fill="#f0f0f0" stroke="#333" stroke-width="3"/>
+                          <line x1="43" y1="10" x2="43" y2="110" stroke="#333" stroke-width="2"/>
+                          <line x1="77" y1="10" x2="77" y2="110" stroke="#333" stroke-width="2"/>
+                          <line x1="10" y1="43" x2="110" y2="43" stroke="#333" stroke-width="2"/>
+                          <line x1="10" y1="77" x2="110" y2="77" stroke="#333" stroke-width="2"/>
+                          <text x="45" y="25" font-size="14" fill="#333" font-weight="bold">9cm（边长）</text>`,
+                    unit: "厘米",
+                    answer: 36,
+                    explanation: "正方形周长公式：边长×4，所以这道题的计算是9×4 = 36厘米。"
+                },
+                {
+                    id: 103,
+                    title: "【基础题3】一个长方形的游泳池，长50米，宽25米，小明沿着池边跑一圈，他跑了多少米？",
+                    svg: `<rect x="10" y="10" width="200" height="100" fill="#e6f7ff" stroke="#4a90e2" stroke-width="3"/>
+                          <text x="80" y="25" font-size="14" fill="#333" font-weight="bold">50m（长）</text>
+                          <text x="15" y="65" font-size="14" fill="#333" font-weight="bold">25m（宽）</text>`,
+                    unit: "米",
+                    answer: 150,
+                    explanation: "小明跑的距离就是游泳池的周长，长方形周长公式：（长+宽）×2，所以计算是（50+25）×2 = 75×2 = 150米。"
+                },
+                {
+                    id: 104,
+                    title: "【基础题4】一个正方形的花坛，边长是8米，在它的四周围上栅栏，栅栏至少需要多少米？",
+                    svg: `<rect x="20" y="20" width="120" height="120" fill="#c3e6cb" stroke="#28a745" stroke-width="3"/>
+                          <text x="50" y="40" font-size="14" fill="#333" font-weight="bold">8m（边长）</text>`,
+                    unit: "米",
+                    answer: 32,
+                    explanation: "栅栏的长度就是正方形花坛的周长，正方形周长公式：边长×4，所以计算是8×4 = 32米。"
+                },
+                {
+                    id: 105,
+                    title: "【基础题5】一个长方形的书本，长20厘米，宽15厘米，它的周长是多少厘米？",
+                    svg: `<rect x="10" y="10" width="160" height="120" fill="#fff3cd" stroke="#ffd700" stroke-width="3"/>
+                          <text x="70" y="25" font-size="14" fill="#333" font-weight="bold">20cm（长）</text>
+                          <text x="15" y="65" font-size="14" fill="#333" font-weight="bold">15cm（宽）</text>`,
+                    unit: "厘米",
+                    answer: 70,
+                    explanation: "长方形周长公式：（长+宽）×2，所以这道题的计算是（20+15）×2 = 35×2 = 70厘米。"
+                }
+            ],
+            2: [
+                {
+                    id: 201,
+                    title: "【进阶题1】一个长方形的周长是80厘米，已知它的长是25厘米，那么它的宽是多少厘米？",
+                    svg: `<rect x="10" y="10" width="200" height="100" fill="#d2b48c" stroke="#8b4513" stroke-width="3"/>
+                          <text x="80" y="25" font-size="14" fill="#333" font-weight="bold">25cm（长）</text>
+                          <text x="15" y="65" font-size="14" fill="#333" font-weight="bold">?cm（宽）</text>`,
+                    unit: "厘米",
+                    answer: 15,
+                    explanation: "根据长方形周长公式：周长 = （长+宽）×2，可以推出宽 = 周长÷2 - 长。所以这道题的计算是80÷2 - 25 = 40 - 25 = 15厘米。"
+                },
+                {
+                    id: 202,
+                    title: "【进阶题2】一个正方形的周长是60米，它的边长是多少米？",
+                    svg: `<rect x="20" y="20" width="120" height="120" fill="#f0f0f0" stroke="#333" stroke-width="3"/>
+                          <line x1="53" y1="20" x2="53" y2="140" stroke="#333" stroke-width="2"/>
+                          <line x1="87" y1="20" x2="87" y2="140" stroke="#333" stroke-width="2"/>
+                          <line x1="20" y1="53" x2="140" y2="53" stroke="#333" stroke-width="2"/>
+                          <line x1="20" y1="87" x2="140" y2="87" stroke="#333" stroke-width="2"/>
+                          <text x="55" y="40" font-size="14" fill="#333" font-weight="bold">?m（边长）</text>`,
+                    unit: "米",
+                    answer: 15,
+                    explanation: "根据正方形周长公式：周长 = 边长×4，可以推出边长 = 周长÷4。所以这道题的计算是60÷4 = 15米。"
+                },
+                {
+                    id: 203,
+                    title: "【进阶题3】一个长方形的长是18厘米，宽比长短5厘米，它的周长是多少厘米？",
+                    svg: `<rect x="10" y="10" width="180" height="130" fill="#e6f7ff" stroke="#4a90e2" stroke-width="3"/>
+                          <text x="70" y="25" font-size="14" fill="#333" font-weight="bold">18cm（长）</text>
+                          <text x="15" y="65" font-size="14" fill="#333" font-weight="bold">?cm（宽）</text>`,
+                    unit: "厘米",
+                    answer: 62,
+                    explanation: "首先算出宽是18-5=13厘米，再用长方形周长公式：（长+宽）×2，所以计算是（18+13）×2 = 31×2 = 62厘米。"
+                },
+                {
+                    id: 204,
+                    title: "【进阶题4】用平移法求下图周长，图形横向长12厘米，纵向长6厘米，它的周长是多少厘米？",
+                    svg: `<path d="M10 10 L130 10 L130 40 L160 40 L160 90 L130 90 L130 120 L10 120 Z" fill="#f5fafe" stroke="#4a90e2" stroke-width="3"/>
+                          <text x="50" y="25" font-size="14" fill="#333" font-weight="bold">12cm（横向）</text>
+                          <text x="15" y="65" font-size="14" fill="#333" font-weight="bold">6cm（纵向）</text>`,
+                    unit: "厘米",
+                    answer: 36,
+                    explanation: "用平移法可以将这个不规则图形转化为一个长方形，长12厘米，宽6厘米。长方形周长公式：（长+宽）×2，所以计算是（12+6）×2 = 18×2 = 36厘米。"
+                },
+                {
+                    id: 205,
+                    title: "【进阶题5】一个正方形分成两个相同的长方形，每个长方形的周长是24厘米，原来正方形的周长是多少厘米？",
+                    svg: `<rect x="10" y="10" width="160" height="160" fill="#fff3cd" stroke="#ffd700" stroke-width="3"/>
+                          <line x1="90" y1="10" x2="90" y2="170" stroke="#ff6b6b" stroke-width="2"/>
+                          <text x="40" y="30" font-size="12" fill="#333" font-weight="bold">正方形</text>
+                          <text x="100" y="90" font-size="12" fill="#333" font-weight="bold">长方形</text>
+                          <text x="20" y="90" font-size="12" fill="#333" font-weight="bold">长方形</text>`,
+                    unit: "厘米",
+                    answer: 32,
+                    explanation: "设正方形边长为a，分成的长方形长为a，宽为a/2。长方形周长=2×(a+a/2)=3a=24，所以a=8厘米。正方形周长=4×8=32厘米。"
+                }
+            ],
+            3: [
+                {
+                    id: 301,
+                    title: "【挑战题1】一个大长方形的操场，长100米，宽50米，小明沿着操场跑了2圈，他一共跑了多少米？",
+                    svg: `<rect x="10" y="10" width="200" height="100" fill="#c3e6cb" stroke="#28a745" stroke-width="3"/>
+                          <line x1="20" y1="20" x2="210" y2="20" stroke="#e6a23c" stroke-width="2"/>
+                          <line x1="20" y1="100" x2="210" y2="100" stroke="#e6a23c" stroke-width="2"/>
+                          <text x="90" y="25" font-size="14" fill="#333" font-weight="bold">100m（长）</text>
+                          <text x="15" y="65" font-size="14" fill="#333" font-weight="bold">50m（宽）</text>`,
+                    unit: "米",
+                    answer: 600,
+                    explanation: "先算1圈的周长：（100+50）×2 = 300米，跑2圈就是300×2 = 600米。"
+                },
+                {
+                    id: 302,
+                    title: "【挑战题2】一个长方形和一个正方形的周长相等，长方形的长是12厘米，宽是8厘米，正方形的边长是多少厘米？",
+                    svg: `<rect x="10" y="40" width="100" height="60" fill="#e6f7ff" stroke="#4a90e2" stroke-width="3"/>
+                          <text x="30" y="55" font-size="14" fill="#333" font-weight="bold">长方形</text>
+                          <text x="20" y="75" font-size="12" fill="#333">长12cm，宽8cm</text>
+                          <rect x="120" y="40" width="80" height="80" fill="#fff3cd" stroke="#ffd700" stroke-width="3"/>
+                          <text x="130" y="55" font-size="14" fill="#333" font-weight="bold">正方形</text>
+                          <text x="130" y="75" font-size="12" fill="#333">边长?cm</text>`,
+                    unit: "厘米",
+                    answer: 10,
+                    explanation: "先算长方形周长：（12+8）×2 = 40厘米，因为正方形周长和长方形相等，所以正方形边长=40÷4 = 10厘米。"
+                },
+                {
+                    id: 303,
+                    title: "【挑战题3】一个不规则图形，用平移法转化为长方形后，长15米，宽比长短5米，这个图形的周长是多少米？",
+                    svg: `<path d="M10 10 L160 10 L160 50 L200 50 L200 150 L160 150 L160 190 L10 190 Z" fill="#f5fafe" stroke="#4a90e2" stroke-width="3"/>
+                          <text x="60" y="25" font-size="14" fill="#333" font-weight="bold">15m（长）</text>
+                          <text x="15" y="100" font-size="14" fill="#333" font-weight="bold">?m（宽）</text>`,
+                    unit: "米",
+                    answer: 50,
+                    explanation: "先算出宽是15-5=10米，不规则图形通过平移法转化为长方形后周长不变，所以周长=（15+10）×2 = 25×2 = 50米。"
+                },
+                {
+                    id: 304,
+                    title: "【挑战题4】一个正方形的边长增加3厘米，它的周长增加多少厘米？",
+                    svg: `<rect x="10" y="10" width="70" height="70" fill="#f0f0f0" stroke="#333" stroke-width="3"/>
+                          <text x="20" y="30" font-size="12" fill="#333" font-weight="bold">原正方形</text>
+                          <rect x="90" y="10" width="90" height="90" fill="#f0f0f0" stroke="#ff6b6b" stroke-width="3"/>
+                          <text x="100" y="30" font-size="12" fill="#333" font-weight="bold">边长+3cm</text>
+                          <line x1="80" y1="50" x2="90" y2="50" stroke="#ff6b6b" stroke-width="2" marker-end="url(#arrowhead)"/>`,
+                    unit: "厘米",
+                    answer: 12,
+                    explanation: "正方形周长=边长×4，如果边长增加3厘米，周长就增加3×4 = 12厘米。"
+                },
+                {
+                    id: 305,
+                    title: "【挑战题5】用4个边长为2厘米的小正方形拼成一个大长方形，这个大长方形的周长是多少厘米？",
+                    svg: `<rect x="10" y="10" width="40" height="40" fill="#e6f7ff" stroke="#4a90e2" stroke-width="2"/>
+                          <rect x="60" y="10" width="40" height="40" fill="#e6f7ff" stroke="#4a90e2" stroke-width="2"/>
+                          <rect x="110" y="10" width="40" height="40" fill="#e6f7ff" stroke="#4a90e2" stroke-width="2"/>
+                          <rect x="160" y="10" width="40" height="40" fill="#e6f7ff" stroke="#4a90e2" stroke-width="2"/>
+                          <text x="100" y="80" font-size="12" fill="#333">拼成的大长方形</text>`,
+                    unit: "厘米",
+                    answer: 20,
+                    explanation: "4个小正方形拼成长方形，长是2×4=8厘米，宽是2厘米。长方形周长=（8+2）×2 = 10×2 = 20厘米。"
+                }
+            ]
+        };
+
+     // 练习模块状态
+        let exerciseState = {
+            currentLevel: 1,
+            currentQuestionIndex: 0,
+            attempts: {}, // 记录每道题的尝试次数
+            completedLevels: [], // 已完成的关卡
+            questionStats: {
+                total: 0,
+                correct: 0
+            },
+            wrongQuestions: [] // 错题记录
+        };
+
+        // 初始化练习模块
+        function initExerciseModule() {
+            // 从本地存储加载状态
+            const savedState = localStorage.getItem('exerciseState');
+            if (savedState) {
+                exerciseState = JSON.parse(savedState);
+                updateLevelButtons();
+            }
+            
+            renderCurrentQuestion();
+            updateProgressBar();
+        }
+
+        // 重置练习模块
+        function resetExerciseModule() {
+            // 只重置当前关卡的题目状态，不重置已完成的关卡
+            exerciseState.attempts = {};
+            renderCurrentQuestion();
+            updateProgressBar();
+        }
+
+        // 切换关卡
+        function switchLevel(level) {
+            // 检查关卡是否已解锁
+            if (level > 1 && !exerciseState.completedLevels.includes(level - 1)) {
+                speakText(`请先完成第${level - 1}关才能解锁第${level}关哦！`);
+                return;
+            }
+            
+            exerciseState.currentLevel = level;
+            exerciseState.currentQuestionIndex = 0;
+            exerciseState.attempts = {};
+            
+            // 更新UI
+            document.querySelectorAll('.level-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`level-${level}-btn`).classList.add('active');
+            
+            document.getElementById('level-title').textContent = 
+                `${getLevelName(level)} - 第1题/共5题`;
+            
+            document.getElementById('level-description').textContent = 
+                getLevelDescription(level);
+            
+            renderCurrentQuestion();
+            updateProgressBar();
+            saveExerciseState();
+        }
+
+        // 获取关卡名称
+        function getLevelName(level) {
+            const names = ['', '基础关卡', '进阶关卡', '挑战关卡'];
+            return names[level];
+        }
+
+        // 获取关卡描述
+        function getLevelDescription(level) {
+            const descriptions = [
+                '',
+                '基础关卡主要练习长方形和正方形周长的基本计算',
+                '进阶关卡将练习周长的逆向计算和简单的平移法应用',
+                '挑战关卡会有更复杂的综合应用题，考验你的周长知识掌握程度'
+            ];
+            return descriptions[level];
+        }
+
+        // 更新关卡按钮状态
+        function updateLevelButtons() {
+            for (let i = 1; i <= 3; i++) {
+                const btn = document.getElementById(`level-${i}-btn`);
+                btn.classList.remove('active', 'completed', 'locked');
+                
+                if (i === exerciseState.currentLevel) {
+                    btn.classList.add('active');
+                } else if (exerciseState.completedLevels.includes(i)) {
+                    btn.classList.add('completed');
+                } else if (i > 1 && !exerciseState.completedLevels.includes(i - 1)) {
+                    btn.classList.add('locked');
+                }
+            }
+        }
+
+        // 渲染当前题目
+        function renderCurrentQuestion() {
+            const levelQuestions = questionData[exerciseState.currentLevel];
+            const currentQuestion = levelQuestions[exerciseState.currentQuestionIndex];
+            const container = document.getElementById('questions-container');
+            
+            // 确保当前题目的尝试次数已初始化
+            if (!exerciseState.attempts[currentQuestion.id]) {
+                exerciseState.attempts[currentQuestion.id] = 0;
+            }
+            
+            container.innerHTML = `
+                <div class="question">
+                    <div class="question-area">
+                        <h4>${currentQuestion.title}</h4>
+                        <!-- 题目语音控制组 -->
+                        <div class="voice-control-group">
+                            <button class="voice-btn" onclick="readQuestion(${currentQuestion.id})">播放题目语音</button>
+                            <button class="voice-control-btn" onclick="pauseSpeech()">暂停语音</button>
+                            <button class="voice-control-btn" onclick="resumeSpeech()">继续播放</button>
+                        </div>
+                    </div>
+                    <div class="svg-area">
+                        <!-- 平面示意图 -->
+                        <svg class="question-svg" viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
+                            ${currentQuestion.svg}
+                            <!-- 箭头定义 -->
+                            <defs>
+                                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#ff6b6b"/></marker>
+                            </defs>
+                        </svg>
+                    </div>
+                    <div class="answer-area">
+                        <div class="answer-group">
+                            <input type="number" id="q-${currentQuestion.id}-answer" placeholder="请输入答案">
+                            <span class="unit">${currentQuestion.unit}</span>
+                        </div>
+                        <button class="question-btn" onclick="checkAnswer(${currentQuestion.id})">提交答案</button>
+                        <div class="feedback" id="q-${currentQuestion.id}-feedback"></div>
+                        <div class="explanation" id="q-${currentQuestion.id}-explanation">${currentQuestion.explanation}</div>
+                    </div>
+                </div>
+            `;
+            
+            // 隐藏下一题按钮
+            document.getElementById('next-btn').style.display = 'none';
+        }
+
+        // 读取题目语音
+        function readQuestion(questionId) {
+            // 找到对应的题目
+            let questionText = '';
+            for (let level in questionData) {
+                const found = questionData[level].find(q => q.id === questionId);
+                if (found) {
+                    questionText = found.title.replace(/【.*?】/, ''); // 去除题目类型标记
+                    break;
+                }
+            }
+            speakText(questionText);
+        }
+
+        // 检查答案
+        function checkAnswer(questionId) {
+            // 找到对应的题目
+            let currentQuestion = null;
+            let level = exerciseState.currentLevel;
+            
+            for (let lvl in questionData) {
+                const found = questionData[lvl].find(q => q.id === questionId);
+                if (found) {
+                    currentQuestion = found;
+                    level = parseInt(lvl);
+                    break;
+                }
+            }
+            
+            if (!currentQuestion) return;
+            
+            // 获取用户答案
+            const userAnswer = parseInt(document.getElementById(`q-${questionId}-answer`).value);
+            const feedbackEl = document.getElementById(`q-${questionId}-feedback`);
+            const explanationEl = document.getElementById(`q-${questionId}-explanation`);
+            
+            // 验证答案
+            if (isNaN(userAnswer)) {
+                feedbackEl.textContent = "请输入一个数字哦！";
+                feedbackEl.className = "feedback wrong";
+                return;
+            }
+            
+            // 更新尝试次数
+            exerciseState.attempts[questionId]++;
+            const attempts = exerciseState.attempts[questionId];
+            
+            // 检查答案是否正确
+            if (userAnswer === currentQuestion.answer) {
+                feedbackEl.textContent = "太棒了，答对了！";
+                feedbackEl.className = "feedback correct";
+                speakText("太棒了，答对了！");
+                
+                // 更新统计
+                exerciseState.questionStats.total++;
+                exerciseState.questionStats.correct++;
+                
+                // 显示下一题按钮
+                document.getElementById('next-btn').style.display = 'inline-block';
+            } else {
+                // 错误处理
+                if (attempts < 3) {
+                    feedbackEl.textContent = "不对呢，再试试看吧！";
+                    feedbackEl.className = "feedback wrong";
+                    speakText("不对呢，再试试看吧！");
+                } else {
+                    // 第三次错误，显示答案和解释
+                    feedbackEl.textContent = `答错了，正确答案是${currentQuestion.answer}${currentQuestion.unit}。`;
+                    feedbackEl.className = "feedback wrong";
+                    explanationEl.style.display = 'block';
+                    //speakText(`答错了，正确答案是${currentQuestion.answer}${currentQuestion.unit}。${currentQuestion.explanation}`);
+                    speakText(`答错了，正确答案是${currentQuestion.answer}${currentQuestion.unit}`);
+                    
+                    // 记录错题
+                    addWrongQuestion(currentQuestion);
+                    
+                    // 显示下一题按钮
+                    document.getElementById('next-btn').style.display = 'inline-block';
+                    
+                    // 更新统计
+                    exerciseState.questionStats.total++;
+                }
+            }
+            
+            saveExerciseState();
+            updateStats();
+        }
+
+        // 添加错题
+        function addWrongQuestion(question) {
+            // 检查是否已存在该错题
+            const exists = exerciseState.wrongQuestions.some(q => q.id === question.id);
+            if (!exists) {
+                exerciseState.wrongQuestions.push({...question});
+            }
+        }
+
+        // 下一题
+        function nextQuestion() {
+            const levelQuestions = questionData[exerciseState.currentLevel];
+            exerciseState.currentQuestionIndex++;
+            
+            // 检查是否完成当前关卡
+            if (exerciseState.currentQuestionIndex >= levelQuestions.length) {
+                // 标记关卡为已完成
+                if (!exerciseState.completedLevels.includes(exerciseState.currentLevel)) {
+                    exerciseState.completedLevels.push(exerciseState.currentLevel);
+                    updateLevelButtons();
+                }
+                
+                // 显示关卡完成弹窗
+                const modal = document.getElementById('level-complete-modal');
+                const modalMessage = document.getElementById('modal-message');
+                const nextLevelBtn = document.getElementById('next-level-btn');
+                
+                modalMessage.textContent = `你成功完成了${getLevelName(exerciseState.currentLevel)}！`;
+                
+                // 确定下一关按钮状态
+                if (exerciseState.currentLevel < 3) {
+                    nextLevelBtn.textContent = `进入${getLevelName(exerciseState.currentLevel + 1)}`;
+                    nextLevelBtn.style.display = 'inline-block';
+                } else {
+                    nextLevelBtn.textContent = '完成所有关卡';
+                    nextLevelBtn.style.display = 'inline-block';
+                }
+                
+                modal.style.display = 'flex';
+                speakText(`恭喜你完成了${getLevelName(exerciseState.currentLevel)}！`);
+            } else {
+                // 渲染下一题
+                document.getElementById('level-title').textContent = 
+                    `${getLevelName(exerciseState.currentLevel)} - 第${exerciseState.currentQuestionIndex + 1}题/共5题`;
+                
+                renderCurrentQuestion();
+                updateProgressBar();
+                speakText(`现在是${getLevelName(exerciseState.currentLevel)}的第${exerciseState.currentQuestionIndex + 1}题`);
+            }
+            
+            saveExerciseState();
+        }
+
+        // 更新进度条
+        function updateProgressBar() {
+            const levelQuestions = questionData[exerciseState.currentLevel];
+            const progress = ((exerciseState.currentQuestionIndex / levelQuestions.length) * 100) + '%';
+            document.getElementById('level-progress').style.width = progress;
+        }
+
+        // 关闭弹窗
+        document.getElementById('close-modal-btn').addEventListener('click', function() {
+            document.getElementById('level-complete-modal').style.display = 'none';
+        });
+
+        // 进入下一关
+        document.getElementById('next-level-btn').addEventListener('click', function() {
+            const modal = document.getElementById('level-complete-modal');
+            modal.style.display = 'none';
+            
+            if (exerciseState.currentLevel < 3) {
+                switchLevel(exerciseState.currentLevel + 1);
+            } else {
+                // 完成所有关卡
+                speakText("恭喜你完成了所有关卡！你真是太厉害了！");
+            }
+        });
+
+        // 保存练习状态到本地存储
+        function saveExerciseState() {
+            localStorage.setItem('exerciseState', JSON.stringify(exerciseState));
+        }
+
+        // 更新统计信息
+        function updateStats() {
+            document.getElementById('total-questions').textContent = exerciseState.questionStats.total;
+            document.getElementById('correct-questions').textContent = exerciseState.questionStats.correct;
+            
+            const rate = exerciseState.questionStats.total > 0 
+                ? Math.round((exerciseState.questionStats.correct / exerciseState.questionStats.total) * 100) 
+                : 0;
+            document.getElementById('correct-rate').textContent = `${rate}%`;
+            
+            // 更新学习进度
+            const hasCompletedExercises = exerciseState.completedLevels.length > 0;
+            document.getElementById('progress-exercise').textContent = hasCompletedExercises ? '已完成' : '未完成';
+        }
+
+        // 更新错题列表
+        function updateWrongList() {
+            const wrongListEl = document.getElementById('wrong-list');
+            
+            if (exerciseState.wrongQuestions.length === 0) {
+                wrongListEl.innerHTML = '<p>暂无错题，继续加油哦！</p>';
+                return;
+            }
+            
+            let html = '';
+            exerciseState.wrongQuestions.forEach(question => {
+                html += `
+                    <div class="wrong-item">
+                        <p>${question.title}</p>
+                        <p>正确答案：${question.answer}${question.unit}</p>
+                        <button class="retry-btn" onclick="retryWrongQuestion(${question.id})">重新练习</button>
+                    </div>
+                `;
+            });
+            
+            wrongListEl.innerHTML = html;
+        }
+
+        // 重新练习错题
+        function retryWrongQuestion(questionId) {
+            // 找到错题所在的关卡
+            let level = 1;
+            for (let lvl in questionData) {
+                const found = questionData[lvl].find(q => q.id === questionId);
+                if (found) {
+                    level = parseInt(lvl);
+                    break;
+                }
+            }
+            
+            // 切换到对应的关卡
+            switchLevel(level);
+            
+            // 找到题目索引
+            const levelQuestions = questionData[level];
+            const questionIndex = levelQuestions.findIndex(q => q.id === questionId);
+            
+            // 跳转到该题目
+            exerciseState.currentQuestionIndex = questionIndex;
+            document.getElementById('level-title').textContent = 
+                `${getLevelName(level)} - 第${questionIndex + 1}题/共5题`;
+            
+            renderCurrentQuestion();
+            updateProgressBar();
+            
+            // 切换到练习模块
+            switchModule('exercise', '现在我们来重新练习这道错题');
+        }
+
+        // 清空错题
+        function clearWrongQuestions() {
+            if (confirm('确定要清空所有错题吗？')) {
+                exerciseState.wrongQuestions = [];
+                saveExerciseState();
+                updateWrongList();
+            }
+        }
+
+        // 初始化
+        window.onload = function() {
+            initExerciseModule();
+            updateStats();
+        };
+    </script>
+</body>
+</html>
